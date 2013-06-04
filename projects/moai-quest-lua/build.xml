@@ -1,8 +1,8 @@
 <project name="example" default="build" basedir=".">
 
   <!-- Setting -->
-  <property name="flower.lib.dir" value="../../Hanappe/projects/flower-library"/>
-  <property name="flower.ext.dir" value="../../Hanappe/projects/flower-extensions"/>
+  <property name="flower.lib.dir" value="../../../Hanappe/projects/flower-library"/>
+  <property name="flower.ext.dir" value="../../../Hanappe/projects/flower-extensions"/>
   <property name="bin.dir" value="./bin"/>
   
   <!-- Targets -->
