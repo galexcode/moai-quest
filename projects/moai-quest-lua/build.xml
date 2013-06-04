@@ -1,0 +1,30 @@
+<project name="example" default="build" basedir=".">
+
+  <!-- Setting -->
+  <property name="flower.lib.dir" value="../../Hanappe/projects/flower-library"/>
+  <property name="flower.ext.dir" value="../../Hanappe/projects/flower-extensions"/>
+  <property name="bin.dir" value="./bin"/>
+  
+  <!-- Targets -->
+  <!-- Clean -->
+  <target name="clean">
+    <mkdir dir="${bin.dir}"/>
+    <delete>
+      <fileset dir="${bin.dir}"/>
+    </delete>
+  </target>
+  
+  <!-- Build -->
+  <target name="build" depends="clean">
+    <copy todir="${bin.dir}" overwrite="true">
+      <fileset dir="${flower.lib.dir}/assets"/>
+      <fileset dir="${flower.lib.dir}/src"/>
+      <fileset dir="${flower.ext.dir}/assets"/>
+      <fileset dir="${flower.ext.dir}/src"/>
+    </copy>
+    <copy todir="${bin.dir}" overwrite="true">
+      <fileset dir="assets"/>
+      <fileset dir="src"/>
+    </copy>
+  </target>
+</project>

@@ -1,0 +1,3 @@
+[submodule "projects/hanappe"]
+	path = projects/hanappe
+	url = git@github.com:makotok/Hanappe.git

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="64" height="32" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" name="pipo-map001_at-miti" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-miti.png" width="32" height="160"/>
+  <terraintypes>
+   <terrain name="土" tile="-1"/>
+  </terraintypes>
+  <tile id="0" terrain=",,,0"/>
+  <tile id="1" terrain=",,0,"/>
+  <tile id="2" terrain=",0,,"/>
+  <tile id="3" terrain="0,,,"/>
+  <tile id="4" terrain=",0,,0"/>
+  <tile id="5" terrain="0,,0,"/>
+  <tile id="6" terrain=",0,,0"/>
+  <tile id="7" terrain="0,,0,"/>
+  <tile id="8" terrain=",,0,0"/>
+  <tile id="9" terrain=",,0,0"/>
+  <tile id="10" terrain="0,0,,"/>
+  <tile id="11" terrain="0,0,,"/>
+  <tile id="12" terrain=",0,0,0"/>
+  <tile id="13" terrain="0,,0,0"/>
+  <tile id="14" terrain="0,0,,0"/>
+  <tile id="15" terrain="0,0,0,"/>
+  <tile id="16" terrain="0,0,0,0"/>
+  <tile id="17" terrain="0,0,0,0"/>
+  <tile id="18" terrain="0,0,0,0"/>
+  <tile id="19" terrain="0,0,0,0"/>
+ </tileset>
+ <tileset firstgid="21" name="pipo-map001_at-mori" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-mori.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="41" name="pipo-map001_at-sabaku" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-sabaku.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="61" name="pipo-map001_at-tuti" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-tuti.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="81" name="pipo-map001_at-umi" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-umi.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="101" name="pipo-map001_at-yama1" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-yama1.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="121" name="pipo-map001_at-yama2" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-yama2.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="141" name="pipo-map001_at-yama3" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001_at-yama3.png" width="32" height="160"/>
+ </tileset>
+ <tileset firstgid="161" name="pipo-map001" tilewidth="16" tileheight="16">
+  <image source="tiles/pipo-map001.png" width="256" height="352"/>
+ </tileset>
+ <layer name="Layer" width="64" height="32">
+  <data encoding="base64" compression="zlib">
+   eJzt2HVsVFkUx/ELi7sty7K4L7As7u6upRQpFCju7u7ursUdiru7u7u7u39vejc5M+k8lj94E+Qkn/ySk/a+d3o6bybjp5SahumYgZmYhdmYg7mYh/lYgIVYhMVYgiAIg9AigyIyooishcZoJLI2WqG1SLvLH0uxDMuxAiuxCquxBmuxDuuxARuxCZsREtEQVWQok5EQ0fQboC3aiGxosiVamL7dtQVbsQ3bsQM7sQu7sQd7sQ/7cQAHcQiHEVw57llnCJMREN706ynHPeusb7I5min37P8IjuIYjuMETuIUTuMMzuIczuMCLuISLivr/cu+1f5l3+66gqu4huu4gZu4hdu4g7u4h/t4gId4hMfK9f6dy9X+3V1P8BTP8Bwv8BKv8Bpv8Bbv8B4f8BGf9C/z8PuNCIewIoMFcp06aIomIut+o5m+poIwQ1A9B4IhOEIgJEIhNMIgLMIhPCIgIiLhd86Ig9gioyMxkohsh+7oJrI9+qG/SLsrMjNEQVRE0/MgOv5ADPyJmPgLsRAbcRAX8XSfM5IhqchYJhMhoel3wUAMENnVZF/0MX27Kz4zJEBCJEJiJEFSJMPfSI4USIl/kAr/IrX++yjHPeuMaTKBPt/0OynHPevsbLI3ein37D8NM6RFOqRHBmREJmRGFmRFNmRHDuRELuT+wv5l32r/sm935WGGvMiH/CiAgiiEwiiCoiiG4iiBkiiF0hb7dy5X+3d3lWGGsigHD5SHJyrACxVRCZVRBd6oimrw0c8JzoiHuCJjBHKdDuiJHiI72jKhdVVnhhqoCV/UQm3UQV3UQ300QEM0QmM0QVP9fOCMtEgjMjmyIKvIQRiNUSIHYxImi7S7mjFDc7RAS7RCa7RBW7RDe3RAR3RCZ3RBV/0c5IzsyCYytcnMyGT6IzAVU0SONDkRE0zf7urGDN3RAz3RC73RB33RD/0xAAMxCIMxBEP1+4Fy3LPOVCYzIoPpD1OOe9Y53OR4jFPu2f8wZhiOERiJURiNMRiLcRiPCZiISZiMKZj6hf3LvtX+Zd/u8mOGaZiOGZiJWZiNOZiLeZiPBViIRViMJRb7dy5X+3d3+TPDUizDcqzASqzCaqzBWqzDemzARmzCZqTgjPRIJzJlINcZgrEYI3KoTTNa1RZm2Ipt2I4d2Ild2I092It92I8DOIhDOIwcnFEQBUTmRAmUFOmDKqgsshr8VMD3T/+l3XWEGY7iGI7jBE7iFE7jDM7iHM7jAi7iEi4jH2eURimR+U0WRzHT91IB3zP5i6xgsgzKmr7ddYUZruIaruMGbuIWbuMO7uIe7uMBHuIRHiOPctyzzrwmi6KI6Xsqxz3rLG+yHDyUe/b/hBme4hme4wVe4hVe4w3e4h3e4wM+4hP0F51W+5d9q/3L/vdWrvbvXK72/71XLhRGIZG5A/m5qqiEiiK97bnFb1r62eU8l36WVUcNkT9q6dewL2qK9DLpowLe43zddXM2lH4Nyz3r9DSp/+e91c+7f9n/UcvV/n+W0p9dnD/Xerj1jn7Vr/r/9Rlyj3Do
+  </data>
+ </layer>
+</map>

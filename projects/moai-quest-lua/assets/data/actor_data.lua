@@ -1,0 +1,48 @@
+return {
+    {
+        id = 1,
+        name = "リナリー",
+        hp = 100,
+        mhp = 100,
+        mp = 50,
+        mmp = 50,
+        str = 20,
+        vit = 24,
+        int = 20,
+        men = 20,
+        spd = 20,
+        equipItems = {
+            0,
+            0,
+            0,
+            0,
+        },
+        skills = {
+            1,
+            2,
+        },
+    },
+    {
+        id = 2,
+        name = "てすと1",
+        hp = 120,
+        mhp = 120,
+        mp = 50,
+        mmp = 50,
+        str = 18,
+        vit = 24,
+        int = 21,
+        men = 22,
+        spd = 23,
+        equipItems = {
+            0,
+            0,
+            0,
+            0,
+        },
+        skills = {
+            3,
+            4,
+        },
+    },
+}
