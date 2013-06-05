@@ -34,6 +34,6 @@ Resources.addResourceDirectory("tile")
 ----------------------------------------------------------------------------------------------------
 
 -- game title name
-M.TITLE_NAME = "Lenalee Quest"
+M.TITLE_NAME = "MOAI Quest"
 
 return M
