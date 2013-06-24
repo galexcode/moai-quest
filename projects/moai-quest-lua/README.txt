@@ -1,8 +1,14 @@
 ■素材について
 
-ちっちゃい素材屋さん
-http://www12.ocn.ne.jp/~minimate/top.html
+* 臼井の会　ＲＰＧツクール素材支部
+http://usui.moo.jp/rpg_tukuru.html
 
-魔王魂
+* First Seed Material
+http://www.tekepon.net/fsm/
+
+* ぴぽや倉庫
+http://piposozai.wiki.fc2.com/
+
+* 魔王魂
 http://maoudamashii.jokersounds.com/
 

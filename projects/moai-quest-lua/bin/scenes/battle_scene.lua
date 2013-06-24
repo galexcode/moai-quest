@@ -1,21 +1,38 @@
 module(..., package.seeall)
 
 -- import
-local Image = flower.Image
-local Runtime = flower.Runtime
-local UIView = widget.UIView
-local Button = widget.Button
-local InputMgr = flower.InputMgr
+local repositry = require "libs/repositry"
+
+--------------------------------------------------------------------------------
+-- Constants
+--------------------------------------------------------------------------------
+local BATTLER_OFFSET_Y = 120
+local BATTLER_MARGIN = 50
+
+--------------------------------------------------------------------------------
+-- Variables
+--------------------------------------------------------------------------------
+local battlers = {}
 
 --------------------------------------------------------------------------------
 -- Event Handler
 --------------------------------------------------------------------------------
 
 function onCreate(e)
+    gameLayer = flower.Layer()
+    gameLayer:setTouchEnabled(true)
+    gameLayer:setScene(scene)
+
+    backgroundImage = flower.Image("battlebg001.png")
+    backgroundImage:setLayer(gameLayer)
+    
+    createBattlers()
 end
 
 function onStart()
-
+    for i, battler in ipairs(battlers) do
+        battler:waitAnim()
+    end
 end
 
 function onStop()
@@ -32,3 +49,16 @@ end
 -- Functions
 --------------------------------------------------------------------------------
 
+function createBattlers()
+    local actors = repositry.getMembers()
+    for i, actor in ipairs(actors) do
+        local battler = display.BattlerImage("battler" .. actor.id .. ".png")
+        battler:setPos(math.floor(flower.viewWidth * 3 / 4), (i - 1) * BATTLER_MARGIN + BATTLER_OFFSET_Y)
+        battler:setLayer(gameLayer)
+        battler:addEventListener("touchDown", function(e)
+            local target = e.target
+            target:damegeAnim()
+        end)
+        battlers[i] = battler
+    end
+end

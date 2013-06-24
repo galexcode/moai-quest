@@ -45,9 +45,9 @@ function onCreate(e)
 end
 
 function newButton_OnClick(e)
-    flower.gotoScene(game_scenes.LOADING, {
+    flower.gotoScene(scenes.LOADING, {
         animation = "fade",
-        nextSceneName = game_scenes.MAP,
+        nextSceneName = scenes.MAP,
         nextSceneParams = {animation = "fade"},
     })
 end

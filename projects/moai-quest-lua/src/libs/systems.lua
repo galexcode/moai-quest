@@ -5,14 +5,17 @@
 -- import
 local flower = require "flower"
 local class = flower.class
-local repositry = require "libs/repositry"
+local entities = require "libs/entities"
+local repositry = entities.repositry
 
 -- module
 local M = {}
 
 -- classes
 local ItemSystem
+local SkillSystem
 local BattleSystem
+local LevelUpSystem
 
 ----------------------------------------------------------------------------------------------------
 -- @type ItemSystem
@@ -37,8 +40,6 @@ function ItemSystem:useItem(itemId, actorId)
     -- TODO:アイテムの効果
     
     repositry.removeBagItem(itemId)
-    
-    print("useItem", "item_id=" .. bagItem.item_id, "item_count=" .. bagItem.item_count)
 end
 
 --------------------------------------------------------------------------------
@@ -48,6 +49,23 @@ end
 --------------------------------------------------------------------------------
 function ItemSystem:getItem(itemId)
 
+end
+
+----------------------------------------------------------------------------------------------------
+-- @type SkillSystem
+-- スキルを使用するためのシステムです.
+----------------------------------------------------------------------------------------------------
+SkillSystem = class()
+M.SkillSystem = SkillSystem
+
+function SkillSystem:init()
+
+end
+
+function SkillSystem:useSkill(actorId, skillId)
+    local actor = repositry.getActorById(actorId)
+    local skill = repositry.getSkillById(skillId)
+    
 end
 
 

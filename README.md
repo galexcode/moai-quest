@@ -1,4 +1,4 @@
-moai-quest
+MOAI Quest
 ==========
 
-RPG game with the MOAI SDK
+## 

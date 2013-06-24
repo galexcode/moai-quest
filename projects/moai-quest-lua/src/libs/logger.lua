@@ -1,8 +1,18 @@
 --------------------------------------------------------------------------------
--- This class is for log output.
+-- ログ出力するためのモジュールです.
 --------------------------------------------------------------------------------
 
+-- import
+local flower = require "flower"
+local class = flower.class
+
+-- module
 local M = {}
+
+-- classes
+local Logger
+local LogTarget
+local LogSelector
 
 -- Constraints
 M.LEVEL_NONE = 0

@@ -31,8 +31,8 @@ end
 
 function menuMainView_OnEnter(e)
     local data = e.data
-    local nextScene = data.next_scene
-    local sceneAnimation = data.scene_animation
+    local nextScene = data.sceneName
+    local sceneAnimation = data.sceneAnimation
     if nextScene then
         flower.openScene(nextScene, {animation = sceneAnimation})
     end

@@ -9,10 +9,12 @@ local InputMgr = flower.InputMgr
 local RPGMap = map.RPGMap
 local RPGObject = map.RPGObject
 local MapControlView = widgets.MapControlView
+local MapStatusView = widgets.MapStatusView
 
 -- variables
-local mapControlView
 local rpgMap
+local mapControlView
+local mapStatusView
 
 --------------------------------------------------------------------------------
 -- Event Handler
@@ -25,6 +27,10 @@ function onCreate(e)
 
     mapControlView = MapControlView()
     mapControlView:setScene(scene)
+    
+    mapStatusView = MapStatusView()
+    mapStatusView:setScene(scene)
+    
     mapControlView:addEventListener("enter", onEnter)
     mapControlView:addEventListener("menu", onMenu)
 end
@@ -48,6 +54,10 @@ end
 
 function onMenu(e)
     flower.openScene(scenes.MENU, {animation = "overlay"})
+end
+
+function onTouchObject(e)
+
 end
 
 --------------------------------------------------------------------------------

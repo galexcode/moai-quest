@@ -4,6 +4,7 @@
 
 -- scenes
 local M = {
+    INITIAL = "scenes/initial_scene",
     TITLE = "scenes/title_scene",
     LOADING = "scenes/loading_scene",
     MAP = "scenes/map_scene",
