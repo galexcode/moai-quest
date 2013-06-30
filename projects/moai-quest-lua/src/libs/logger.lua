@@ -9,11 +9,6 @@ local class = flower.class
 -- module
 local M = {}
 
--- classes
-local Logger
-local LogTarget
-local LogSelector
-
 -- Constraints
 M.LEVEL_NONE = 0
 M.LEVEL_INFO = 1
@@ -26,8 +21,6 @@ M.LEVEL_DEBUG = 4
 --------------------------------------------------------------------------------
 M.selector = {}
 M.selector[M.LEVEL_INFO] = true
-M.selector[M.LEVEL_WARN] = true
-M.selector[M.LEVEL_ERROR] = true
 M.selector[M.LEVEL_DEBUG] = true
 
 --------------------------------------------------------------------------------
@@ -43,39 +36,26 @@ end
 --------------------------------------------------------------------------------
 M.logTarget = M.CONSOLE_TARGET
 
---------------------------------------------------------------------------------
--- The normal log output.
---------------------------------------------------------------------------------
-function M.info(...)
+---
+-- ログを出力します.
+-- @param message メッセージ
+-- @param ... メッセージ引数
+function M.log(message, ...)
     if M.selector[M.LEVEL_INFO] then
-        M.logTarget("[info]", ...)
+        local str = message:format(...)
+        M.logTarget("[INFO]", str)
     end
 end
 
---------------------------------------------------------------------------------
--- The warning log output.
---------------------------------------------------------------------------------
-function M.warn(...)
-    if M.selector[M.LEVEL_WARN] then
-        M.logTarget("[warn]", ...)
-    end
-end
-
---------------------------------------------------------------------------------
--- The error log output.
---------------------------------------------------------------------------------
-function M.error(...)
-    if M.selector[M.LEVEL_ERROR] then
-        M.logTarget("[error]", ...)
-    end
-end
-
---------------------------------------------------------------------------------
--- The debug log output.
---------------------------------------------------------------------------------
-function M.debug(...)
+---
+-- デバッグログを出力します.
+-- @param message メッセージ
+-- @param ... メッセージ引数
+function M.debug(message, ...)
     if M.selector[M.LEVEL_DEBUG] then
-        M.logTarget("[debug]", ...)
+        local str = message:format(...)
+        local info = debug.getinfo(2)
+        M.logTarget("[DEBUG]", "[" .. info.short_src .. ":L" .. info.currentline .. "]", str)
     end
 end
 

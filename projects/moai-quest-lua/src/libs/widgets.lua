@@ -15,16 +15,19 @@ local display = require "libs/display"
 local repositry = entities.repositry
 local class = flower.class
 local table = flower.table
+local ClassFactory = flower.ClassFactory
 local InputMgr = flower.InputMgr
 local SceneMgr = flower.SceneMgr
 local Group = flower.Group
 local Label = flower.Label
+local TextAlign = widget.TextAlign
 local UIView = widget.UIView
 local UIComponent = widget.UIComponent
 local Joystick = widget.Joystick
 local Button = widget.Button
 local Panel = widget.Panel
 local ListBox = widget.ListBox
+local ListItem = widget.ListItem
 local TextBox = widget.TextBox
 local FaceImage = display.FaceImage
 
@@ -47,7 +50,7 @@ local SkillListBox
 local SkillListItem
 local MemberListBox
 local MemberListItem
-local DescripsionBox
+local InventoryListBox
 
 -- consts
 local STICK_TO_DIR = {
@@ -80,17 +83,17 @@ function MapControlView:_createChildren()
         stickMode = "digital",
         color = {0.6, 0.6, 0.6, 0.6},
     }
-    
+
     self.enterButton = Button {
         size = {100, 50},
         color = {0.6, 0.6, 0.6, 0.6},
-        text = "Enter",
+        text = "Action",
         parent = self,
         onClick = function(e)
-            self:dispatchEvent("enter")
+            self:dispatchEvent("action")
         end,
     }
-    
+
     self.menuButton = Button {
         size = {100, 50},
         color = {0.6, 0.6, 0.6, 0.6},
@@ -100,19 +103,19 @@ function MapControlView:_createChildren()
             self:dispatchEvent("menu")
         end,
     }
-    
+
 end
 
 ---
 -- 表示を更新します.
 function MapControlView:updateDisplay()
     MapControlView.__super.updateDisplay(self)
-    
+
     local vw, vh = flower.getViewSize()
     local joystick = self.joystick
     local menuButton = self.menuButton
     local enterButton = self.enterButton
-    
+
     joystick:setPos(10, vh - joystick:getHeight() - 10)
     menuButton:setPos(vw - menuButton:getWidth() - 10, vh - menuButton:getHeight() - enterButton:getHeight() - 20)
     enterButton:setPos(vw - enterButton:getWidth() - 10, menuButton:getBottom() + 10)
@@ -149,16 +152,36 @@ M.MapStatusView = MapStatusView
 function MapStatusView:_createChildren()
     MapStatusView.__super._createChildren(self)
 
-    self._actorStatusBox = ActorStatusBox {
+    self.actorStatusBox = ActorStatusBox {
         parent = self,
     }
+
+    self.enemyNameBox = TextBox {
+        size = {160, 50},
+        pos = {self:getWidth() - 160, 0},
+        parent = self,
+        textSize = 16,
+        visible = false,
+    }
+
 end
 
 ---
 -- 表示を更新します.
 function MapStatusView:updateDisplay()
     MapControlView.__super.updateDisplay(self)
-    
+
+end
+
+---
+-- エネミーの名前を表示します.
+-- @param
+function MapStatusView:setEnemy(enemy)
+    self._enemy = enemy
+    self.enemyNameBox:setVisible(self._enemy ~= nil)
+    if self._enemy then
+        self.enemyNameBox:setText(self._enemy.name)
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -181,7 +204,7 @@ function MenuControlView:_createChildren()
             self:dispatchEvent("back")
         end,
     }
-    
+
 end
 
 --------------------------------------------------------------------------------
@@ -191,19 +214,14 @@ end
 MenuMainView = class(UIView)
 M.MenuMainView = MenuMainView
 
+---
+-- 子オブジェクトを生成します.
 function MenuMainView:_createChildren()
     MenuMainView.__super._createChildren(self)
 
-    self.menuTitle = widget.TextBox {
-        size = {310, 40},
-        pos = {5, 5},
-        text = "GOLD:999",
-        parent = self,
-    }
-
     self.menuList = ListBox {
-        width = 310,
-        pos = {5, self.menuTitle:getBottom()},
+        width = 320,
+        pos = {0, 50},
         rowCount = 3,
         columnCount = 2,
         parent = self,
@@ -218,13 +236,13 @@ function MenuMainView:_createChildren()
             self:dispatchEvent("enter", e.data)
         end,
     }
-    
+
     self.menuMsgBox = widget.TextBox {
-        size = {310, 40},
-        pos = {5, self.menuList:getBottom()},
+        size = {320, 40},
+        pos = {0, self.menuList:getBottom()},
         parent = self,
     }
-    
+
 end
 
 --------------------------------------------------------------------------------
@@ -237,15 +255,8 @@ M.MenuItemView = MenuItemView
 function MenuItemView:_createChildren()
     MenuItemView.__super._createChildren(self)
 
-    self.menuTitle = widget.TextBox {
-        size = {310, 40},
-        pos = {5, 5},
-        text = "アイテムリスト",
-        parent = self,
-    }
-
     self.itemList = ItemListBox {
-        pos = {5, self.menuTitle:getBottom()},
+        pos = {0, 50},
         parent = self,
         onItemChanged = function(e)
             local data = e.data
@@ -256,16 +267,16 @@ function MenuItemView:_createChildren()
             self:dispatchEvent("enter", e.data)
         end,
     }
-    
+
     self.itemMsgBox = widget.TextBox {
-        size = {310, 80},
-        pos = {5, self.itemList:getBottom()},
+        size = {320, 80},
+        pos = {0, self.itemList:getBottom()},
         parent = self,
     }
 end
 
 function MenuItemView:refresh()
-    self.itemList:setListData(repositry.getItemMenus())
+    self:updateDisplay()
 end
 
 --------------------------------------------------------------------------------
@@ -277,11 +288,6 @@ M.MenuSkillView = MenuSkillView
 
 function MenuSkillView:_createChildren()
     MenuSkillView.__super._createChildren(self)
-
-    self.actorStatusBox = MenuActorStatusBox {
-        pos = {5, 5},
-        parent = self,
-    }
 
     self.listBox = SkillListBox {
         pos = {5, self.actorStatusBox:getBottom()},
@@ -296,7 +302,7 @@ function MenuSkillView:_createChildren()
             self:dispatchEvent("enter", e.data)
         end,
     }
-    
+
     self.msgBox = widget.TextBox {
         size = {310, 80},
         pos = {5, self.listBox:getBottom()},
@@ -318,7 +324,7 @@ end
 
 function MenuStatusView:_createChildren()
     MenuStatusView.__super._createChildren(self)
-    
+
     self.detailBox = MenuActorDetailBox {
         actor = {repositry:getActorById(1)},
         parent = self,
@@ -376,7 +382,7 @@ function MenuActorStatusBox:_createChildren()
     MenuActorStatusBox.__super._createChildren(self)
     self:_createFaceImage()
     self:_createStatusLabel()
-    
+
     self:setSize(310, 110)
 end
 
@@ -404,7 +410,7 @@ function MenuActorStatusBox:makeStatusMsg()
     if not self._actor then
         return ""
     end
-    
+
 end
 
 --------------------------------------------------------------------------------
@@ -444,7 +450,7 @@ function MenuActorDetailBox:_createChildren()
     self:_createFaceImage()
     self:_createHeaderLabel()
     self:_createStatusLabel()
-    
+
     self:setSize(310, 260)
 end
 
@@ -473,7 +479,7 @@ function MenuActorDetailBox:_createStatusLabel()
         self:addChild(valueLabel)
         table.insert(self._statusNameLabels, nameLabel)
         table.insert(self._statusValueLabels, valueLabel)
-    end 
+    end
 end
 
 function MenuActorDetailBox:updateDisplay()
@@ -512,30 +518,33 @@ end
 -- @type ActorStatusBox
 -- アクターの簡易的なステータスを表示するボックスです.
 --------------------------------------------------------------------------------
-ActorStatusBox = class(UIComponent)
+ActorStatusBox = class(Panel)
 M.ActorStatusBox = ActorStatusBox
 
+---
+-- コンストラクタ
+-- @param params パラメータ
 function ActorStatusBox:init(params)
     ActorStatusBox.__super.init(self, params)
-    
-    self:setSize(160, 40)
+
+    self:setSize(160, 50)
 end
 
 function ActorStatusBox:_createChildren()
     ActorStatusBox.__super._createChildren(self)
-    
+
     self._actor = repositry:getActorById(1)
-    
-    self._hpNameLabel = Label("HP:", nil, nil, nil, 16)
-    self._hpNameLabel:setPos(0, 0)
-    self._hpValueLabel = Label(self._actor.hp .. "/" .. self._actor.mhp, nil, nil, nil, 16)
-    self._hpValueLabel:setPos(self._hpNameLabel:getRight(), 0)
-    
-    self._mpNameLabel = Label("MP:", nil, nil, nil, 16)
-    self._mpNameLabel:setPos(0, self._hpNameLabel:getBottom())
-    self._mpValueLabel = Label(self._actor.hp .. "/" .. self._actor.mhp, nil, nil, nil, 16)
+
+    self._hpNameLabel = Label("HP:", 40, 20, nil, 16)
+    self._hpNameLabel:setPos(5, 5)
+    self._hpValueLabel = Label(self._actor.hp .. "/" .. self._actor.mhp, 100, 20, nil, 16)
+    self._hpValueLabel:setPos(self._hpNameLabel:getRight(), 5)
+
+    self._mpNameLabel = Label("MP:", 40, 20, nil, 16)
+    self._mpNameLabel:setPos(5, self._hpNameLabel:getBottom())
+    self._mpValueLabel = Label(self._actor.hp .. "/" .. self._actor.mhp, 100, 20, nil, 16)
     self._mpValueLabel:setPos(self._hpNameLabel:getRight(), self._mpNameLabel:getTop())
-    
+
     self:addChild(self._hpNameLabel)
     self:addChild(self._hpValueLabel)
     self:addChild(self._mpNameLabel)
@@ -557,13 +566,87 @@ ItemListBox = class(ListBox)
 M.ItemListBox = ItemListBox
 
 function ItemListBox:init(params)
+    params.listData = {repositry:getBagItems()}
+    params.width = 320
+    params.rowCount = 8
+    params.labelField = "itemName"
+    params.listItemFactory = ClassFactory(ItemListItem)
+
     ItemListBox.__super.init(self, params)
-    
-    self:setListData(repositry:getBagItems())
-    self:setWidth(310)
-    self:setRowCount(8)
-    self:setLabelField("itemName")
 end
+
+--------------------------------------------------------------------------------
+-- @type ItemListItem
+-- アイテム名とアイテム数をセットで表示するリストアイテムです.
+--------------------------------------------------------------------------------
+ItemListItem = class(ListItem)
+M.ItemListItem = ItemListItem
+
+ItemListItem._COUNT_LABEL_SUFFIX = "個"
+
+---
+-- コンストラクタ
+-- @param params パラメータ
+function ItemListItem:init(params)
+    ItemListItem.__super.init(self, params)
+end
+
+---
+-- 子オブジェクトを生成します.
+function ItemListItem:_createChildren()
+    ItemListItem.__super._createChildren(self)
+
+    self._countLabel = Label("0")
+    self:addChild(self._countLabel)
+end
+
+---
+-- 表示を更新します.
+function ItemListItem:updateDisplay()
+    ItemListItem.__super.updateDisplay(self)
+
+    local label = self._countLabel
+    local xMin, yMin, xMax, yMax = self._backgroundImage:getContentRect()
+    local textWidth, textHeight = xMax - xMin, yMax - yMin
+    self._textLabel:setSize(textWidth - 60, textHeight)
+    label:setSize(60, textHeight)
+    label:setPos(self._textLabel:getRight(), self._textLabel:getTop())
+    label:setString(tostring(self:getItemCount()) .. ItemListItem._COUNT_LABEL_SUFFIX)
+    label:setTextSize(self:getTextSize())
+    label:setColor(self:getTextColor())
+    label:setAlignment(TextAlign.right)
+    label:setFont(self:getFont())
+
+    print("textLabel", self._textLabel:getPos())
+    print("countLabel", label:getPos())
+    print("countLabel", label:getSize())
+end
+
+---
+-- データを設定します.データ設定時、件数も更新します.
+function ItemListItem:setData(data, dataIndex)
+    ItemListItem.__super.setData(self, data, dataIndex)
+    self._countLabel:setString(tostring(self:getItemCount()) .. ItemListItem._COUNT_LABEL_SUFFIX)
+end
+
+---
+-- アイテム数を返します.
+-- @return アイテム数
+function ItemListItem:getItemCount()
+    if self._data then
+        return self._data.itemCount or 0
+    end
+    return 0
+end
+
+---
+-- サイズ変更時にイベントハンドラです.
+-- @param e Touch Event
+function ItemListItem:onResize(e)
+    self:updateDisplay()
+end
+
+
 
 --------------------------------------------------------------------------------
 -- @type SkillListBox
@@ -574,10 +657,10 @@ M.SkillListBox = SkillListBox
 
 function SkillListBox:init(params)
     ItemListBox.__super.init(self, params)
-    
+
     local actor = params.actor
     self:setListData(actor:getSkills())
-    self:setWidth(310)
+    self:setWidth(320)
     self:setRowCount(6)
     self:setLabelField("name")
 end
@@ -596,9 +679,9 @@ M.MemberListBox = MemberListBox
 
 function MemberListBox:init(params)
     MemberListBox.__super.init(self, params)
-    
+
     self:setListData(repositry.getMembers())
-    self:setWidth(310)
+    self:setWidth(320)
     self:setRowCount(4)
     self:setLabelField("name")
 end

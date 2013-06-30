@@ -7,15 +7,21 @@ local M = {}
 
 -- import
 local flower = require "flower"
+local logger = require "libs/logger"
 local class = flower.class
 local table = flower.table
+local EventDispatcher = flower.EventDispatcher
 
 -- classes
 local Entity
 local EntityPool
 local EntityRepositry
+local EntityWorld
+local EntitySystem
 local Skill
 local Item
+local ItemType
+local Effect
 local Menu
 local Message
 local Actor
@@ -27,26 +33,27 @@ local BagItem
 
 -- variables
 local entityPool
-local entityRepositry
+local repositry
+local world
 
 ---
 -- モジュールの初期化処理を行います.
 function M.initialize()
-    entityRepositry = EntityRepositry()
+    repositry = EntityRepositry()
     entityPool = EntityPool()
-    
     entityPool:initEntities()
-    
-    M.repositry = entityRepositry
+
+    M.repositry = repositry
 end
 
 --------------------------------------------------------------------------------
 -- @type Entity
 -- エンティティの共通的な振る舞いを定義するクラスです.
 --------------------------------------------------------------------------------
-Entity = class()
+Entity = class(EventDispatcher)
 
 function Entity:init()
+    Entity.__super.init(self)
 end
 
 ---
@@ -66,6 +73,15 @@ function Entity:saveData()
     return data
 end
 
+---
+-- オブジェクトをコピーします.
+-- @return オブジェクト
+function Entity:clone()
+    local obj = self.__class()
+    table.copy(self, obj)
+    return obj
+end
+
 --------------------------------------------------------------------------------
 -- @type EntityPool
 -- エンティティをメモリ上にプールする為のクラスです.
@@ -82,10 +98,12 @@ end
 function EntityPool:initEntities()
     self.skills = self:createEntities(Skill, dofile("data/skill_data.lua"))
     self.items = self:createEntities(Item, dofile("data/item_data.lua"))
+    self.effects = self:createEntities(Effect, dofile("data/effect_data.lua"))
     self.menus = self:createEntities(Menu, dofile("data/menu_data.lua"))
     self.actors = self:createEntities(Actor, dofile("data/actor_data.lua"))
     self.enemies = self:createEntities(Enemy, dofile("data/enemy_data.lua"))
     self.bagItems = self:createEntities(BagItem, dofile("data/bag_data.lua"))
+    self.bag = Bag(self.bagItems)
     self.teams = self:createEntities(Team, dofile("data/team_data.lua"))
 end
 
@@ -94,13 +112,14 @@ end
 function EntityPool:loadEntities(saveId)
     self.actors = self:createEntities(Actor, dofile("save" .. saveId .. "/actor_data.lua"))
     self.bagItems = self:createEntities(Actor, dofile("save" .. saveId .. "/bag_data.lua"))
+    self.bag = Bag(self.bagItems)
     self.teams = self:createEntities(Actor, dofile("save" .. saveId .. "/team_data.lua"))
 end
 
 ---
 -- メモリ上のエンティティを保存します.
 function EntityPool:saveEntities(saveId)
-    -- TODO:実装
+-- TODO:実装
 end
 
 ---
@@ -181,6 +200,26 @@ function EntityRepositry:getSkillById(id)
     return self:getEntityById(entityPool.skills, id)
 end
 
+---
+-- 全てのエフェクトリストを返します.
+-- @return エフェクトリスト
+function EntityRepositry:getEffects()
+    return entityPool.effects
+end
+
+---
+-- 指定したIDに一致するエフェクトを返します.
+-- @return エフェクト
+function EntityRepositry:getEffectById(id)
+    return self:getEntityById(entityPool.effects, id)
+end
+
+---
+-- プレイヤーが保持するバッグを返します.
+-- @return バッグ
+function EntityRepositry:getBag()
+    return entityPool.bag
+end
 
 ---
 -- バッグアイテムリストを返します.
@@ -212,6 +251,8 @@ end
 Item = class(Entity)
 M.Item = Item
 
+---
+-- コンストラクタ
 function Item:init()
     self.id = 0
     self.name = nil
@@ -220,6 +261,37 @@ function Item:init()
     self.equipType = 0
     self.atk = 0
     self.def = 0
+end
+
+---
+-- アイテムの効果を発揮します.
+function Item:doEffectItem(actor)
+
+end
+
+function Item:doRecoveryItem(actor)
+
+end
+
+--------------------------------------------------------------------------------
+-- @type ItemType
+-- アイテム区分を定義するエンティティです.
+--------------------------------------------------------------------------------
+ItemType = class(Entity)
+M.ItemType = ItemType
+
+--- 回復アイテム
+ItemType.RECOVERY = 1
+
+--- 装備アイテム
+ItemType.EQUIP = 2
+
+---
+-- コンストラクタ
+function ItemType:init()
+    self.id = 0
+    self.name = nil
+    self.description = nil
 end
 
 --------------------------------------------------------------------------------
@@ -239,6 +311,21 @@ function Skill:init()
 end
 
 --------------------------------------------------------------------------------
+-- @type Effect
+-- スキルを定義するエンティティです.
+--------------------------------------------------------------------------------
+Effect = class(Entity)
+M.Effect = Effect
+
+function Effect:init()
+    self.id = 0
+    self.name = nil
+    self.texture = nil
+    self.tileSize = nil
+    self.effectData = nil
+end
+
+--------------------------------------------------------------------------------
 -- @type Menu
 -- メインメニューから起動するメニューを表すエンティティクラスです.
 --------------------------------------------------------------------------------
@@ -255,12 +342,61 @@ end
 
 --------------------------------------------------------------------------------
 -- @type Bag
+-- バッグを表すエンティティです.
+-- アイテムを追加、削除する機能を有します.
 --------------------------------------------------------------------------------
 Bag = class(Entity)
 M.Bag = Bag
 
-function Bag:init()
-    self.bagItems = {}
+---
+-- コンストラクタ
+-- @param bagItems バッグアイテムリスト
+function Bag:init(bagItems)
+    self.bagItems = assert(bagItems, "bagItems is required.")
+end
+
+---
+-- バッグにアイテムを追加します.
+-- @param item アイテム
+function Bag:addItem(item)
+    local bagItem = self:getBagItemById(item.id)
+    if bagItem then
+        bagItem.itemCount = bagItem.itemCount + 1
+    else
+        table.insertElement(self.bagItems, bagItem)
+    end
+end
+
+---
+-- バッグからアイテムを削除します.
+-- @param item アイテム
+function Bag:removeItem(item)
+    local bagItem = self:getBagItemById(item.id)
+    if bagItem then
+        bagItem.itemCount = bagItem.itemCount - 1
+        if bagItem.itemCount <= 0 then
+            table.removeElement(self.bagItems, bagItem)
+        end
+    end
+end
+
+---
+-- バッグにあるアイテムを検索して返します.
+-- @param itemId アイテムID
+-- @return バッグアイテム
+function Bag:getBagItemById(itemId)
+    for i, bagItem in ipairs() do
+        if bagItem.item.id == itemId then
+            return bagItem
+        end
+    end
+end
+
+---
+-- バッグアイテムリストを返します.
+-- @return バッグアイテムリスト
+function Bag:getBagItems()
+    return self.bagItems
 end
 
 --------------------------------------------------------------------------------
@@ -272,17 +408,19 @@ M.BagItem = BagItem
 
 ---
 -- コンストラクタ
-function BagItem:init()
-    self.item = nil
-    self.itemName = nil
-    self.itemCount = nil
+-- @param item (option)アイテム
+function BagItem:init(item)
+    self.item = item
+    self.itemName = item and item.name
+    self.itemCount = item and 1 or 0
     self.itemEquipCount = 0
 end
 
 ---
 -- データを読み込みます.
+-- @param data バッグデータ
 function BagItem:loadData(data)
-    self.item = assert(entityRepositry:getItemById(data.itemId), "Not found item!")
+    self.item = assert(repositry:getItemById(data.itemId), "Not found item!")
     self.itemName = self.item.name
     self.itemCount = data.itemCount
     self.itemEquipCount = data.itemEquipCount
@@ -301,10 +439,23 @@ end
 
 --------------------------------------------------------------------------------
 -- @type Actor
--- 
+-- アクターを表すエンティティです.
+-- アクターとしての能力があります.
 --------------------------------------------------------------------------------
 Actor = class(Entity)
 M.Actor = Actor
+
+--- ダメージを受けた時のイベントです.
+Actor.EVENT_DAMEGE = "damege"
+
+--- 死亡した時のイベントです.
+Actor.EVENT_DEAD = "dead"
+
+--- 回復した時のイベントです.
+Actor.EVENT_RECOVERY = "recovery"
+
+--- 何らかのステータスを更新したときのイベントです.
+Actor.EVENT_UPDATE = "update"
 
 ---
 -- コンストラクタ
@@ -344,13 +495,13 @@ function Actor:loadData(data)
     self.int = data.int
     self.men = data.men
     self.spd = data.spd
-    
+
     for i, itemId in ipairs(data.equipItems) do
-        local item = assert(entityRepositry:getItemById(itemId), "Not Found Item!", itemId)
+        local item = assert(repositry:getItemById(itemId), "Not Found Item!", itemId)
         self.equipItems[i] = item
     end
     for i, skillId in ipairs(data.equipSkills) do
-        local skill = assert(entityRepositry:getSkillById(skillId), "Not Found Skill", skillId)
+        local skill = assert(repositry:getSkillById(skillId), "Not Found Skill", skillId)
         self.equipSkills[i] = skill
     end
 end
@@ -376,13 +527,40 @@ end
 ---
 -- スキルを追加します.
 function Actor:addSkill(skill)
-    table.insertElement(self.equipSkills, skill) 
+    table.insertElement(self.equipSkills, skill)
 end
 
 ---
 -- スキルを削除します.
 function Actor:removeSkill(skill)
-    table.removeElement(self.equipSkills, skill) 
+    table.removeElement(self.equipSkills, skill)
+end
+
+---
+-- アイテムを使用します.
+function Actor:useItem(item)
+
+end
+
+---
+-- ターゲットを攻撃します.
+-- TODO:スキルはどうやって攻撃するのか
+-- @param ターゲット
+function Actor:doAttack(target)
+    local atkPoint = self:getAtkPoint()
+    local defPoint = target:getDefPoint()
+
+    local point = math.max(atkPoint - defPoint / 2, 1)
+    target.hp = math.max(target.hp - point, 0)
+
+    -- dispatch event
+    target:dispatchEvent(Actor.EVENT_DAMEGE, {damegeHP = point})
+    if target.hp <= 0 then
+        target:dispatchEvent(Actor.EVENT_DEAD)
+    end
+    target:dispatchEvent(Actor.EVENT_UPDATE)
+
+    logger.debug("Attack! NAME:%s, HP:%s", target.name, target.hp)
 end
 
 ---
@@ -432,16 +610,6 @@ M.Enemy = Enemy
 function Enemy:init()
     Enemy.__super.init(self)
 end
-
----
--- オブジェクトをコピーします.
--- @return Enemyオブジェクト
-function Enemy:clone()
-    local enemy = self.__class()
-    table.copy(self, enemy)
-    return enemy
-end
-
 
 M.initialize()
 

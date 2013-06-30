@@ -10,6 +10,7 @@ local M = {}
 local flower = require "flower"
 local tiled = require "tiled"
 local entities = require "libs/entities"
+local effects = require "libs/effects"
 local repositry = entities.repositry
 local class = flower.class
 local ClassFactory = flower.ClassFactory
@@ -28,7 +29,7 @@ local MapSystem
 local MovementSystem
 local CameraSystem
 local TurnSystem
-local BattleSystem
+local ActionSystem
 
 --------------------------------------------------------------------------------
 -- @type MapEvent
@@ -37,8 +38,11 @@ local BattleSystem
 MapEvent = class(Event)
 M.MapEvent = MapEvent
 
---- オブジェクトをタッチしたときのイベント
-MapEvent.TOUCH_OBJECT = "touchObject"
+--- オブジェクトをタッチしてフォーカスがあたった時のイベント
+MapEvent.FOCUS_IN_OBJECT = "focusInObject"
+
+--- オブジェクトからフォーカスが外れた時のイベント
+MapEvent.FOCUS_OUT_OBJECT = "focusOutObject"
 
 --------------------------------------------------------------------------------
 -- @type RPGMap
@@ -81,6 +85,7 @@ end
 ---
 -- イベントリスナーを初期化します.
 function RPGMap:initEventListeners()
+    self:addEventListener("touchDown", self.onTouchDown, self)
     self:addEventListener("loadedData", self.onLoadedData, self)
     self:addEventListener("savedData", self.onSavedData, self)
 end
@@ -128,8 +133,23 @@ function RPGMap:isCollisionForObjects(target, mapX, mapY)
 end
 
 ---
+-- 指定したマップ座標に存在するオブジェクトを返します.
+-- @param mapX マップX座標
+-- @param mapY マップY座標
+-- @return オブジェクト
+function RPGMap:getObjectByMapPos(mapX, mapY)
+    for i, object in ipairs(self.objectLayer:getObjects()) do
+        local objX, objY = object:getMapPos()
+        if objX == mapX and objY == mapY then
+            return object
+        end
+    end
+end
+
+---
 -- ビューポート内のサイズを返します.
--- TODO:これ必要だっけ？
+-- @return viewWidth
+-- @return viewHeight
 function RPGMap:getViewSize()
     return flower.viewWidth, flower.viewHeight
 end
@@ -171,6 +191,12 @@ function RPGMap:onUpdate(e)
     end
 end
 
+---
+-- マップをタッチした時のイベントハンドラです.
+function RPGMap:onTouchDown(e)
+    self:dispatchEvent(MapEvent.FOCUS_OUT_OBJECT)
+end
+
 ----------------------------------------------------------------------------------------------------
 -- @type RPGObject
 -- マップの配置するオブジェクトクラスです.
@@ -195,7 +221,7 @@ RPGObject.EVENT_MOVE_END = "moveEnd"
 RPGObject.DIR_UP = "up"
 RPGObject.DIR_LEFT = "left"
 RPGObject.DIR_RIGHT = "right"
-RPGObject.DIR_DONW = "down"
+RPGObject.DIR_DOWN = "down"
 
 -- Move speed
 RPGObject.MOVE_SPEED = 4
@@ -227,6 +253,8 @@ function RPGObject:init(tileMap)
     self.linerVelocity.stepX = 0
     self.linerVelocity.stepX = 0
     self.linerVelocity.stepCount = 0
+
+    self:addEventListener("touchDown", self.onTouchDown, self)
 end
 
 ---
@@ -257,16 +285,16 @@ end
 function RPGObject:initActor(data)
     if self.renderer then
         self.renderer:setAnimDatas(RPGObject.ACTOR_ANIM_DATAS)
-        self:playAnim(self:getCurrentAnimName())
+        self:setDirection(self:getDirectionByIndex())
     end
-    self:addEventListener("touchDown", self.onTouchDown, self)
 end
 
 ---
 -- プレイヤーの初期化処理です.
 -- @param data オブジェクトデータ
 function RPGObject:initPlayer(data)
-    self.actorEntity = repositry:getActorById(1)
+    self.entity = repositry:getActorById(1)
+    self:initEntityListener()
 end
 
 ---
@@ -275,8 +303,18 @@ end
 function RPGObject:initEnemy(data)
     local enemyId = self:getProperty("enemy_id")
     if enemyId then
-        self.actorEntity = repositry:createEnemy(tonumber(enemyId))
+        self.entity = repositry:createEnemy(tonumber(enemyId))
+        self:initEntityListener()
     end
+end
+
+---
+-- エンティティに関するイベントリスナーを初期化します.
+function RPGObject:initEntityListener()
+    self.entity:addEventListener("damege", self.onDamegeEntity, self)
+    self.entity:addEventListener("dead", self.onDeadEntity, self)
+    self.entity:addEventListener("recovery", self.onRecoveryEntity, self)
+    self.entity:addEventListener("update", self.onUpdateEntity, self)
 end
 
 ---
@@ -293,7 +331,7 @@ end
 -- @return マップY座標
 function RPGObject:getNextMapPos()
     local mapX, mapY = self:getMapPos()
-    local velocity = RPGObject.DIR_TO_VELOCITY[self.direction]
+    local velocity = RPGObject.DIR_TO_VELOCITY[self.direction] or {x = 0, y = 0}
     return mapX + velocity.x, mapY + velocity.y
 end
 
@@ -307,24 +345,25 @@ end
 ---
 -- 現在の方向に対するアニメーション名を返します.
 -- @return アニメーション名
-function RPGObject:getCurrentAnimName()
+function RPGObject:getDirectionByIndex()
     if not self.renderer then
         return
     end
 
     local index = self.renderer:getIndex()
     if 1 <= index and index <= 3 then
-        return "walkDown"
+        return RPGObject.DIR_DOWN
     end
     if 4 <= index and index <= 6 then
-        return "walkLeft"
+        return RPGObject.DIR_LEFT
     end
     if 7 <= index and index <= 9 then
-        return "walkRight"
+        return RPGObject.DIR_RIGHT
     end
     if 10 <= index and index <= 12 then
-        return "walkUp"
+        return RPGObject.DIR_UP
     end
+    return RPGObject.DIR_DOWN
 end
 
 ---
@@ -401,15 +440,53 @@ function RPGObject:isCollision(mapX, mapY)
 end
 
 ---
+-- ターゲットを攻撃します.
+function RPGObject:doAttack(target)
+    if not target or not target.entity then
+        return
+    end
+    local entity = repositry:getEffectById(1)
+    local skillEffect = effects.SkillEffect(entity)
+    skillEffect:play(target.renderer)
+    
+    self.entity:doAttack(target.entity)
+end
+
+---
 -- オブジェクトがタッチされた場合は呼ばれるイベントハンドラです.
 -- @param e タッチイベント
 function RPGObject:onTouchDown(e)
-    if self.actorEntity then
-        print("id", self.actorEntity.id)
-        print("name", self.actorEntity.name)
-        
-        self.tileMap:dispatchEvent(MapEvent.TOUCH_OBJECT, self)
-    end
+    self.tileMap:dispatchEvent(MapEvent.FOCUS_IN_OBJECT, self)
+    e:stop()
+end
+
+---
+-- エンティティがダメージを受けた時のイベントハンドラです.
+-- @param e イベント
+function RPGObject:onDamegeEntity(e)
+    local damegeEffect = effects.DamegeEffect(e.data.damegeHP)
+    damegeEffect:play(self.renderer)
+end
+
+---
+-- エンティティが死亡した時のイベントハンドラです.
+-- @param e イベント
+function RPGObject:onDeadEntity(e)
+    self.parent:removeObject(self)
+end
+
+---
+-- エンティティが回復した時のイベントハンドラです.
+-- @param e イベント
+function RPGObject:onRecoveryEntity(e)
+    
+end
+
+---
+-- エンティティが更新された時のイベントハンドラです.
+-- @param e イベント
+function RPGObject:onUpdateEntity(e)
+    
 end
 
 ----------------------------------------------------------------------------------------------------

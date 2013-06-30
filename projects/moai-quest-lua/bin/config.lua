@@ -12,24 +12,32 @@ local Resources = flower.Resources
 -- Screen setting
 flower.DEFAULT_SCREEN_WIDTH = MOAIEnvironment.horizontalResolution or 320
 flower.DEFAULT_SCREEN_HEIGHT = MOAIEnvironment.verticalResolution or 480
-flower.DEFAULT_VIEWPORT_SCALE = math.max(flower.DEFAULT_SCREEN_WIDTH, flower.DEFAULT_SCREEN_HEIGHT) > 1024 and 2 or 1
+flower.DEFAULT_VIEWPORT_SCALE = math.max(flower.DEFAULT_SCREEN_WIDTH, flower.DEFAULT_SCREEN_HEIGHT) > 960 and 2 or 1
 
 -- MOAISim setting
-MOAISim.setStep ( 1 / 60 )
-MOAISim.clearLoopFlags ()
-MOAISim.setLoopFlags ( MOAISim.SIM_LOOP_ALLOW_BOOST )
-MOAISim.setLoopFlags ( MOAISim.SIM_LOOP_LONG_DELAY )
-MOAISim.setBoostThreshold ( 0 )
+MOAISim.setStep ( 1 / 30 )
+--MOAISim.clearLoopFlags ()
+--MOAISim.setLoopFlags ( MOAISim.LOOP_FLAGS_FIXED )
+--MOAISim.setLoopFlags ( MOAISim.SIM_LOOP_LONG_DELAY )
+--MOAISim.setBoostThreshold ( 0 )
 
 -- Resource setting
-Resources.addResourceDirectory("actor")
-Resources.addResourceDirectory("battler")
-Resources.addResourceDirectory("background")
-Resources.addResourceDirectory("face")
-Resources.addResourceDirectory("skins")
-Resources.addResourceDirectory("monster")
-Resources.addResourceDirectory("picture")
-Resources.addResourceDirectory("tile")
+Resources.resourceDirectories = {
+    "actor",
+    "background",
+    "effect",
+    "face",
+    "fonts",
+    "icons",
+    "skins",
+    "picture",
+    "tile",
+}
+
+--flower.Font.DEFAULT_CHARCODES = [[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,:;!?()&/-ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゛゜ゝゞゟ゠ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾヿ使用確認終了入替]]
+
+MOAISim.setHistogramEnabled(true) -- debug
+
 
 -- Debug
 local timer = MOAITimer.new()
@@ -39,11 +47,9 @@ timer:setListener(MOAITimer.EVENT_TIMER_LOOP,
     function()
         print("FPS:", MOAISim.getPerformance())
         print("Draw:", MOAIRenderMgr.getPerformanceDrawCount())
+        MOAISim.reportHistogram()
     end)
 timer:start()
-
--- Font preloading
-flower.Font.DEFAULT_CHARCODES = require "charcodes"
 
 ----------------------------------------------------------------------------------------------------
 -- Consts
