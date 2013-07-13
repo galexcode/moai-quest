@@ -9,47 +9,26 @@ module(..., package.seeall)
 local Image = flower.Image
 local UIView = widget.UIView
 local Button = widget.Button
+local TitleMenuView = views.TitleMenuView
 
 -- variables
-local view
-local newButton
-local titleImage
-local loadButton
+local titleMenuView
 
 --------------------------------------------------------------------------------
 -- Event Handler
 --------------------------------------------------------------------------------
 
 function onCreate(e)
-    view = UIView {
+    titleMenuView = TitleMenuView {
         scene = scene,
     }
     
-    -- title
-    titleImage = Image("title.png")
-    --titleImage:setPos(math.floor(flower.viewWidth / 2 - titleImage:getWidth() / 2), 30)
-    view:addChild(titleImage)
+    titleMenuView:addEventListener("newGame", onNewGame)
+    titleMenuView:addEventListener("loadGame", onLoadGame)
     
-    -- new button
-    newButton = Button {
-        text = "New",
-        size = {200, 50},
-        pos = {math.floor(flower.viewWidth / 2 - 100), math.floor(flower.viewHeight * 2 / 3)},
-        parent = view,
-        onClick = newButton_OnClick,
-    }
-    
-    -- new button
-    loadButton = Button {
-        text = "Load",
-        size = {200, 50},
-        pos = {newButton:getLeft(), newButton:getBottom() + 20},
-        parent = view,
-        onClick = loadButton_OnClick,
-    }
 end
 
-function newButton_OnClick(e)
+function onNewGame(e)
     flower.gotoScene(scenes.LOADING, {
         animation = "fade",
         nextSceneName = scenes.MAP,
@@ -57,6 +36,6 @@ function newButton_OnClick(e)
     })
 end
 
-function loadButton_OnClick(e)
+function onLoadGame(e)
     
 end

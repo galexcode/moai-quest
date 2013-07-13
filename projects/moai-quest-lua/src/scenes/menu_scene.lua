@@ -7,9 +7,9 @@ local UIView = widget.UIView
 local Button = widget.Button
 local ListBox = widget.ListBox
 local TextBox = widget.TextBox
-local MenuControlView = widgets.MenuControlView
-local MenuMainView = widgets.MenuMainView
-local MenuItemView = widgets.MenuItemView
+local MenuControlView = views.MenuControlView
+local MenuMainView = views.MenuMainView
+local MenuItemView = views.MenuItemView
 
 --------------------------------------------------------------------------------
 -- Event Handler

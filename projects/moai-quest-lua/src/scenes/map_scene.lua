@@ -11,10 +11,10 @@ local Runtime = flower.Runtime
 local UIView = widget.UIView
 local Button = widget.Button
 local InputMgr = flower.InputMgr
-local RPGMap = map.RPGMap
-local RPGObject = map.RPGObject
-local MapControlView = widgets.MapControlView
-local MapStatusView = widgets.MapStatusView
+local WorldMap = map.WorldMap
+local MapObject = map.MapObject
+local MapControlView = views.MapControlView
+local MapStatusView = views.MapStatusView
 
 -- variables
 local worldMap
@@ -30,20 +30,17 @@ local mapStatusView
 -- シーン生成時のイベントハンドラです.
 -- @param e イベント
 function onCreate(e)
-    worldMap = RPGMap()
+    worldMap = WorldMap()
     worldMap:setScene(scene)
+    worldMap:addEventListener("battle", onBattle)
     loadMap("world_map.lue")
 
     mapControlView = MapControlView()
     mapControlView:setScene(scene)
+    mapControlView:addEventListener("menu", onMenu)
     
     mapStatusView = MapStatusView()
     mapStatusView:setScene(scene)
-    
-    worldMap:addEventListener("focusInObject", onFocusInObject)
-    worldMap:addEventListener("focusOutObject", onFocusOutObject)
-    mapControlView:addEventListener("action", onAction)
-    mapControlView:addEventListener("menu", onMenu)
 end
 
 ---
@@ -67,20 +64,10 @@ function onUpdate(e)
     worldMap:onUpdate(e)
 
     local direction = mapControlView:getDirection()
-    playerObject:walkMap(direction)
-end
-
----
--- 行動ボタン押下時のイベントハンドラです.
--- @param e イベント
-function onAction(e)
-    if playerObject:isMoving() then
-        return
-    end
-    local mapX, mapY = playerObject:getNextMapPos()
-    local obj = worldMap:getObjectByMapPos(mapX, mapY)
-    if obj and obj.entity then
-        playerObject:doAttack(obj)
+    if direction then
+        playerObject:startWalk(direction)
+    else
+        playerObject:stopWalk()
     end
 end
 
@@ -92,17 +79,10 @@ function onMenu(e)
 end
 
 ---
--- マップオブジェクトにフォーカスインした時のイベントハンドラです.
+-- バトル開始のイベントハンドラです.
 -- @param e イベント
-function onFocusInObject(e)
-    mapStatusView:setEnemy(e.data.entity)
-end
-
----
--- マップオブジェクトにフォーカスアウトした時のイベントハンドラです.
--- @param e イベント
-function onFocusOutObject(e)
-    mapStatusView:setEnemy(nil)
+function onBattle(e)
+    flower.openScene(scenes.BATTLE, {animation = "popIn", enemyId = e.data.enemyId})
 end
 
 --------------------------------------------------------------------------------

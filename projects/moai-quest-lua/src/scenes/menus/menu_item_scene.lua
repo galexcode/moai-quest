@@ -3,8 +3,8 @@ module(..., package.seeall)
 --------------------------------------------------------------------------------
 -- import
 --------------------------------------------------------------------------------
-local MenuControlView = widgets.MenuControlView
-local MenuItemView = widgets.MenuItemView
+local MenuControlView = views.MenuControlView
+local MenuItemView = views.MenuItemView
 local ItemSystem = systems.ItemSystem
 
 --------------------------------------------------------------------------------

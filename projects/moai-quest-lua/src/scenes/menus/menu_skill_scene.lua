@@ -3,8 +3,8 @@ module(..., package.seeall)
 --------------------------------------------------------------------------------
 -- import
 --------------------------------------------------------------------------------
-local MenuControlView = widgets.MenuControlView
-local MenuSkillView = widgets.MenuSkillView
+local MenuControlView = views.MenuControlView
+local MenuSkillView = views.MenuSkillView
 
 --------------------------------------------------------------------------------
 -- Event Handler

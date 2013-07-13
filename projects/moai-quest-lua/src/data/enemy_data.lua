@@ -2,6 +2,7 @@ return {
     {
         id = 1,
         name = "ゴブリン",
+        texture = "GD_Goblin(Green).png",
         level = 1,
         exp = 0,
         hp = 20,

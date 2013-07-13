@@ -51,6 +51,7 @@ end
 -- エンティティの共通的な振る舞いを定義するクラスです.
 --------------------------------------------------------------------------------
 Entity = class(EventDispatcher)
+M.Entity = Entity
 
 function Entity:init()
     Entity.__super.init(self)
@@ -87,6 +88,7 @@ end
 -- エンティティをメモリ上にプールする為のクラスです.
 --------------------------------------------------------------------------------
 EntityPool = class()
+M.EntityPool = EntityPool
 
 ---
 -- コンストラクタ
@@ -102,18 +104,18 @@ function EntityPool:initEntities()
     self.menus = self:createEntities(Menu, dofile("data/menu_data.lua"))
     self.actors = self:createEntities(Actor, dofile("data/actor_data.lua"))
     self.enemies = self:createEntities(Enemy, dofile("data/enemy_data.lua"))
+    self.teams = self:createEntities(Team, dofile("data/team_data.lua"))
     self.bagItems = self:createEntities(BagItem, dofile("data/bag_data.lua"))
     self.bag = Bag(self.bagItems)
-    self.teams = self:createEntities(Team, dofile("data/team_data.lua"))
 end
 
 ---
 -- セーブしていたエンティティを読み込みます.
 function EntityPool:loadEntities(saveId)
     self.actors = self:createEntities(Actor, dofile("save" .. saveId .. "/actor_data.lua"))
+    self.teams = self:createEntities(Actor, dofile("save" .. saveId .. "/team_data.lua"))
     self.bagItems = self:createEntities(Actor, dofile("save" .. saveId .. "/bag_data.lua"))
     self.bag = Bag(self.bagItems)
-    self.teams = self:createEntities(Actor, dofile("save" .. saveId .. "/team_data.lua"))
 end
 
 ---
@@ -141,6 +143,7 @@ end
 -- エンティティにアクセスするリポジトリクラスです.
 --------------------------------------------------------------------------------
 EntityRepositry = class()
+M.EntityRepositry = EntityRepositry
 
 ---
 -- コンストラクタです.
@@ -151,6 +154,8 @@ end
 -- 指定したエンティティリストについて、IDが一致するエンティティを返します.
 -- @return IDが一致するエンティティ
 function EntityRepositry:getEntityById(entities, id)
+    assert(entities)
+    assert(id)
     for i, entity in ipairs(entities) do
         if entity.id == id then
             return entity
@@ -170,6 +175,21 @@ end
 -- @return アクター
 function EntityRepositry:getActorById(id)
     return self:getEntityById(entityPool.actors, id)
+end
+
+---
+-- プレイヤーのチームに登録されたメンバーリストを返します.
+-- @param メンバーリスト
+function EntityRepositry:getMembers()
+    local team = self:getEntityById(entityPool.teams, 1)
+    return team.members
+end
+
+---
+-- プレイヤーを返します.
+-- TODO:適当なので修正が必要
+function EntityRepositry:getPlayer()
+    return self:getActorById(1)
 end
 
 ---
@@ -434,8 +454,21 @@ Team = class(Entity)
 M.Team = Team
 
 function Team:init()
-
+    self.id = nil
+    self.members = {}
 end
+
+---
+-- データを読み込みます.
+-- @param data バッグデータ
+function Team:loadData(data)
+    self.id = data.id
+    self.members = {}
+    for i, memberId in ipairs(data.members) do
+        table.insert(self.members, repositry:getActorById(memberId))
+    end
+end
+
 
 --------------------------------------------------------------------------------
 -- @type Actor
@@ -483,9 +516,10 @@ end
 -- データを読み込みます.
 function Actor:loadData(data)
     self.id = data.id
+    self.name = data.name
+    self.texture = data.texture
     self.level = data.level
     self.exp = data.exp
-    self.name = data.name
     self.hp = data.hp
     self.mhp = data.mhp
     self.mp = data.mp
